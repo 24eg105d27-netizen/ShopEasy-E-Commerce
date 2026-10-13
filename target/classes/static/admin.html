@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — ShopEasy Console</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <!-- Admin Top Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top border-bottom border-secondary py-2">
+        <div class="container-fluid px-4">
+            <a class="brand-logo text-white" href="admin.html">
+                <i class="bi bi-shield-check text-warning"></i>
+                Shop<span>Easy</span> <span class="badge bg-warning text-dark fs-7 ms-2 text-uppercase">Admin Portal</span>
+            </a>
+
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <a href="index.html" class="btn btn-outline-light btn-sm" target="_blank">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> View Live Store
+                </a>
+                <button class="btn btn-danger btn-sm" onclick="logoutUser()">
+                    <i class="bi bi-power me-1"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container-fluid px-4 py-4">
+        <!-- Dashboard Header -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+            <div>
+                <h1 class="fw-bold fs-3 mb-1 text-dark">Executive Overview & Analytics</h1>
+                <p class="text-muted small mb-0">Manage catalog inventory, fulfill customer orders, and oversee business metrics.</p>
+            </div>
+            <div>
+                <button class="btn btn-primary-custom" onclick="openAddProductModal()">
+                    <i class="bi bi-plus-circle me-1"></i> Add New Product
+                </button>
+            </div>
+        </div>
+
+        <!-- Low Stock Alert Banner -->
+        <div id="low-stock-alert" class="d-none"></div>
+
+        <!-- 4 Top KPI Stats Cards -->
+        <div class="row g-3 mb-4">
+            <!-- Total Sales -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-val" id="stat-sales">₹0.00</div>
+                        <div class="stat-label">Total Revenue</div>
+                    </div>
+                    <div class="stat-icon bg-success-subtle text-success">
+                        <i class="bi bi-currency-rupee"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Orders -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-val" id="stat-orders">0</div>
+                        <div class="stat-label">Total Orders</div>
+                    </div>
+                    <div class="stat-icon bg-primary-subtle text-primary">
+                        <i class="bi bi-cart-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Products -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-val" id="stat-products">0</div>
+                        <div class="stat-label">Active Products</div>
+                    </div>
+                    <div class="stat-icon bg-warning-subtle text-warning">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Customers -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="stat-card">
+                    <div>
+                        <div class="stat-val" id="stat-customers">0</div>
+                        <div class="stat-label">Customers</div>
+                    </div>
+                    <div class="stat-icon bg-info-subtle text-info">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management Navigation Tabs -->
+        <ul class="nav nav-pills mb-4 bg-white p-2 rounded-3 border shadow-sm" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold" id="nav-products-tab" data-bs-toggle="tab" data-bs-target="#tab-products" type="button" role="tab">
+                    <i class="bi bi-grid me-2"></i>Product Catalog
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="nav-orders-tab" data-bs-toggle="tab" data-bs-target="#tab-orders" type="button" role="tab">
+                    <i class="bi bi-truck me-2"></i>Orders & Status
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold" id="nav-customers-tab" data-bs-toggle="tab" data-bs-target="#tab-customers" type="button" role="tab">
+                    <i class="bi bi-person-lines-fill me-2"></i>Registered Customers
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="adminTabsContent">
+            <!-- TAB 1: PRODUCT MANAGEMENT -->
+            <div class="tab-pane fade show active" id="tab-products" role="tabpanel">
+                <div class="card border rounded-3 shadow-sm bg-white p-3 mb-4">
+                    <div class="row g-3 align-items-center mb-3">
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" id="admin-product-search" class="form-control" placeholder="Search products by title or description..." oninput="filterProducts()">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="admin-product-filter-cat" class="form-select" onchange="filterProducts()">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 text-md-end">
+                            <button class="btn btn-outline-custom w-100" onclick="loadProducts(); loadStats();">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Refresh Table
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Preview</th>
+                                    <th>Product Details</th>
+                                    <th>Price</th>
+                                    <th>Inventory</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-products-tbody">
+                                <tr><td colspan="6" class="text-center py-4"><div class="spinner-loading"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: ORDER MANAGEMENT -->
+            <div class="tab-pane fade" id="tab-orders" role="tabpanel">
+                <div class="card border rounded-3 shadow-sm bg-white p-3 mb-4">
+                    <div class="row g-3 align-items-center mb-3">
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" id="admin-order-search" class="form-control" placeholder="Search by Order #, Customer, or Email..." oninput="filterOrders()">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="admin-order-filter-status" class="form-select" onchange="filterOrders()">
+                                <option value="">All Statuses</option>
+                                <option value="PLACED">Placed</option>
+                                <option value="PROCESSING">Processing</option>
+                                <option value="SHIPPED">Shipped</option>
+                                <option value="DELIVERED">Delivered</option>
+                                <option value="CANCELLED">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 text-md-end">
+                            <button class="btn btn-outline-custom w-100" onclick="loadOrders(); loadStats();">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Refresh Orders
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order Info</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Change Status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-orders-tbody">
+                                <tr><td colspan="7" class="text-center py-4"><div class="spinner-loading"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: CUSTOMER ACCOUNTS -->
+            <div class="tab-pane fade" id="tab-customers" role="tabpanel">
+                <div class="card border rounded-3 shadow-sm bg-white p-3 mb-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Registration Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-customers-tbody">
+                                <tr><td colspan="5" class="text-center py-4"><div class="spinner-loading"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Product Create / Edit Modal -->
+    <div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <form onsubmit="handleSaveProduct(event)">
+                    <div class="modal-header border-bottom py-3">
+                        <h5 class="modal-title fw-bold" id="productModalTitle">Add Product</h5>
+                        <button type="button" class="btn-close" data-bs-toggle="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="product-form-name" class="form-label small fw-bold text-muted text-uppercase">Product Title *</label>
+                                <input type="text" id="product-form-name" class="form-control" required placeholder="Sony WH-1000XM5...">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="product-form-category" class="form-label small fw-bold text-muted text-uppercase">Category *</label>
+                                <select id="product-form-category" class="form-select" required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="product-form-price" class="form-label small fw-bold text-muted text-uppercase">Price (₹) *</label>
+                                <input type="number" step="0.01" id="product-form-price" class="form-control" required placeholder="24999.00">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="product-form-stock" class="form-label small fw-bold text-muted text-uppercase">Stock Quantity *</label>
+                                <input type="number" id="product-form-stock" class="form-control" required placeholder="25" min="0">
+                            </div>
+                            <div class="col-12">
+                                <label for="product-form-image" class="form-label small fw-bold text-muted text-uppercase">Image URL (Unsplash or direct image URL)</label>
+                                <input type="url" id="product-form-image" class="form-control" placeholder="https://images.unsplash.com/photo-...">
+                            </div>
+                            <div class="col-12">
+                                <label for="product-form-description" class="form-label small fw-bold text-muted text-uppercase">Description</label>
+                                <textarea id="product-form-description" class="form-control" rows="3" placeholder="Key specifications, battery life, color, and warranty..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="save-product-btn" class="btn btn-primary-custom">Save Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Order Details Modal -->
+    <div class="modal fade" id="adminOrderDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom py-3">
+                    <h5 class="modal-title fw-bold">
+                        Customer Order: <span id="admin-modal-order-number" class="text-primary font-monospace"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-toggle="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3 mb-4 p-3 bg-light rounded-3 border">
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Placed On:</span>
+                            <div id="admin-modal-order-date" class="fw-semibold">-</div>
+                            <span class="text-muted small d-block mt-2">Status:</span>
+                            <div id="admin-modal-status-badge"></div>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted small d-block">Customer & Contact:</span>
+                            <div id="admin-modal-customer" class="fw-bold">-</div>
+                            <span class="text-muted small d-block mt-2">Shipping Destination:</span>
+                            <div id="admin-modal-address" class="small text-muted">-</div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive mb-3">
+                        <table class="table align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Price At Purchase</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-modal-items-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3 border">
+                        <div>
+                            <span class="text-muted small">Payment Mode:</span>
+                            <span id="admin-modal-payment" class="badge bg-white text-dark border ms-2"></span>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-muted small d-block">Total Revenue:</span>
+                            <span id="admin-modal-total" class="fw-bold fs-4 text-primary">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core Application Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
